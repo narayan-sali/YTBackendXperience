@@ -1,0 +1,20 @@
+{
+  "name": "joyful-backend-",
+  "version": "1.0.0",
+  "description": "This is the backend project ",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "javascript",
+    "backend"
+  ],
+  "author": "Narayan Sali",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.3"
+  }
+}
