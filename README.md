@@ -168,3 +168,7 @@ Confirm your changes.
 Now, you have successfully created a MongoDB Atlas account, created a project, deployed a database cluster, obtained connection strings, and configured IP access. You can use the provided connection string in your application to connect to your MongoDB database.
  
 
+Adding npm packages 
+------------------------------
+insert 
+npm i mongooose express dotenv
