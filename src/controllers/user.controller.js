@@ -57,9 +57,6 @@ const registerUser = asyncHandler(async (req,res) => {
    if (!avatarLocalPath){
     throw new ApiError(400 , "Avatar file is required ")
    }
-
-    
-
         // upload avatar,coverimage to cloudinary
        const avatar = await uploadOnCloudinary(avatarLocalPath)
        
@@ -269,6 +266,15 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
   const avatar = await uploadOnCloudinary(avatarLocalPath)
   if (!avatar.url){
     throw new ApiError (400, "Error while uploading on avatar ")
+
+  }
+  // Retrieve the current user's avatar URL
+  const currentUser = await User.findById(req.user?._id).select("avatar");
+
+   // Check if the user has an existing avatar URL
+   if (currentUser.avatar) {
+    // Delete the old avatar from Cloudinary (replace 'deleteFromCloudinary' with the appropriate function)
+    await deleteFromCloudinary(currentUser.avatar);
   }
  
   const user = await User.findByIdAndUpdate(req.user?._id,
