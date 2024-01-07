@@ -16,8 +16,6 @@ const uploadOnCloudinary = async (localFilePath) => {
         //upload the file on cloudinary 
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type:"auto"
-            
-    
     })
     // console.log("Cloudinary response:", response);
     //    // file has been uploaded successfully
@@ -31,25 +29,27 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
+const destroyOnCloudinary = async (remotePath) => {
+  try {
+      if (!remotePath) return null;
+      const regex = /[\w\.\$]+(?=.png|.jpg|.gif)/;
+      let matches;
 
-const deleteFromCloudinary = async(publicId)=>{
-  try{
-       if(!publicId) return null 
-       const result = await cloudinary.uploader.destroy(publicId);
-       if (result.result === 'ok') {
-        console.log(`File with publicId ${publicId} deleted from Cloudinary`);
-      } else {
-        console.error(`Error deleting file from Cloudinary: ${result.result}`);
-        throw new Error(`Error deleting file from Cloudinary: ${result.result}`);
+      if ((matches = regex.exec(remotePath)) !== null) {
+          // destroy the file on Cloudinary
+          await cloudinary.uploader.destroy(matches[0])
+          .then(result => console.log(result));
       }
-  }catch(error){
-    console.error('Error deleting file from Cloudinary:', error.message);
-    throw error;
 
+  } catch (error) {
+      throw error
   }
 }
 
-export {uploadOnCloudinary,deleteFromCloudinary}
+export {uploadOnCloudinary, destroyOnCloudinary}
+
+
+
 
 
 
