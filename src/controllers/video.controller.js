@@ -4,18 +4,19 @@ import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary , destroyOnCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
+    
+    
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
      // Check if any field is empty
     const { title , description } = req.body
-    console.log("title:", title)
     const userId = req.user._id
     if (
         [title && description].some((field)=>field?.trim()=== "")
@@ -35,7 +36,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
    if (req.files && Array.isArray(req.files.thumbnail) && req.files.thumbnail.length>0) {
     thumbnailLocalPath = req.files.thumbnail[0].path
    }
-   console.log(thumbnailLocalPath)
+  
 // upload on cloudinary
    const videoFile = await uploadOnCloudinary(videoFileLocalPath)
         if(!videoFile){
@@ -83,8 +84,57 @@ const getVideoById = asyncHandler(async (req, res) => {
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    //TODO: update video details like title, description, thumbnail
+
+//TODO: update video details like title, description, thumbnail
+    const {videoId} = req.params
+    
+    if (!videoId) {
+        throw new ApiError (400, "Video id  not found or invalid")
+    } 
+    //* check weather user  owner of this video or not
+    
+    console.log('Before fetching video');
+    const video = await Video.findByIdAndUpdate(videoId)
+    console.log('After fetching video');
+    if(!video){
+        throw new ApiError(400, "something went wrong while fetching video")
+    }
+    if (!req.user._id.equals(video.owner._id)) {
+        throw new ApiError(400, "you are not the owner of this video");
+    }
+
+    const { title, description } = req.body;
+    const thumbnail = req.file;
+   
+    if (!title && !description && !thumbnail) {
+        throw new ApiError(400, "Please provide atleast one filed");
+      }
+      //upload new thumbnail
+    
+    let newThumbnail;
+    if (thumbnail) {
+      newThumbnail = await uploadOnCloudinary(thumbnail.path);
+    }
+    
+    //Delete old thumbnail
+    const thumbnailToDelete = video.thumbnail;
+   
+    thumbnailToDelete ? await destroyOnCloudinary(thumbnailToDelete) : null;
+    
+    const updatedVideo = await Video.findOneAndUpdate(
+        { _id: videoId },
+        {
+          title,
+          description,
+          ...(newThumbnail && { thumbnail: newThumbnail.url })
+        },
+        { new: true }
+      );
+      
+      
+      return res
+      .status(201)
+      .json(new ApiResponse(200, updatedVideo, "Video updated successfully"));
 
 })
 
