@@ -48,7 +48,7 @@ const destroyOnCloudinary = async (remotePath) => {
   }
 }
 
-const deleteVideoOnCloudinary = async (url) => {
+const destroyVideoFileOnCloudinary = async (url) => {
     try {
       //Getting public Id
       const publicId = url.split("/").pop().split(".")[0];
@@ -66,7 +66,7 @@ const deleteVideoOnCloudinary = async (url) => {
     }
   };
 
-export {uploadOnCloudinary, destroyOnCloudinary,deleteVideoOnCloudinary }
+export {uploadOnCloudinary, destroyOnCloudinary,destroyVideoFileOnCloudinary }
 
 
 

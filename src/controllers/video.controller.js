@@ -4,7 +4,7 @@ import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary , destroyOnCloudinary,deleteVideoOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary , destroyOnCloudinary,destroyVideoFileOnCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -157,7 +157,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     console.log('Video file ', videoFile);
     console.log('Thumbnail:', thumbnail);
     // delete video file from cloudinary 
-   const videoTodelete = await deleteVideoOnCloudinary(videoFile)
+   const videoTodelete = await destroyVideoFileOnCloudinary(videoFile)
    
     //  delete thumbanil from cloudinary 
     const thumbanilToDelete =  await destroyOnCloudinary(thumbnail)
