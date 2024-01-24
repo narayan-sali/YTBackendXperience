@@ -4,7 +4,7 @@ import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary , destroyOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary , destroyOnCloudinary,deleteVideoOnCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -33,10 +33,10 @@ const publishAVideo = asyncHandler(async (req, res) => {
        }
 
        let thumbnailLocalPath;
-   if (req.files && Array.isArray(req.files.thumbnail) && req.files.thumbnail.length>0) {
-    thumbnailLocalPath = req.files.thumbnail[0].path
-   }
-  
+        if (req.files && Array.isArray(req.files.thumbnail) && req.files.thumbnail.length>0) {
+            thumbnailLocalPath = req.files.thumbnail[0].path
+        }
+        // console.log(thumbnailLocalPath)
 // upload on cloudinary
    const videoFile = await uploadOnCloudinary(videoFileLocalPath)
         if(!videoFile){
@@ -46,7 +46,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         if(!thumbnail){
             throw new ApiError(400, "Thumnail is missing")
         }
-
+        // console.log("thumbanil:", thumbnail)
     const  newVideo = await Video.create({
         title, 
         description, 
@@ -92,10 +92,8 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError (400, "Video id  not found or invalid")
     } 
     //* check weather user  owner of this video or not
-    
-    console.log('Before fetching video');
-    const video = await Video.findByIdAndUpdate(videoId)
-    console.log('After fetching video');
+     const video = await Video.findByIdAndUpdate(videoId)
+  
     if(!video){
         throw new ApiError(400, "something went wrong while fetching video")
     }
@@ -140,7 +138,40 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    console.log('videoId:', videoId);
     //TODO: delete video
+    if (!videoId) {
+        throw new ApiError (400, "Video id  not found or invalid")
+    } 
+    //* check weather user  owner of this video or not
+     const video = await Video.findById(videoId)
+  
+    if(!video){
+        throw new ApiError(400, "something went wrong while fetching video")
+    }
+    if (!req.user._id.equals(video.owner._id)) {
+        throw new ApiError(400, "you are not the owner of this video");
+    }
+    // Extract videoFile and thumbnail from the video object
+    const { videoFile, thumbnail } = video;
+    console.log('Video file ', videoFile);
+    console.log('Thumbnail:', thumbnail);
+    // delete video file from cloudinary 
+   const videoTodelete = await deleteVideoOnCloudinary(videoFile)
+   
+    //  delete thumbanil from cloudinary 
+    const thumbanilToDelete =  await destroyOnCloudinary(thumbnail)
+    
+   // Delete video document from the database
+    const result = await Video.findByIdAndDelete(videoId)
+    if(!result){
+        throw new ApiError(400, "can not delete video ")
+    }
+
+    return res
+    .status(201)
+    .json(new ApiResponse(200, result , "Video deleted succesfully")) 
+
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {

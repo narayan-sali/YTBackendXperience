@@ -19,7 +19,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     })
     // console.log("Cloudinary response:", response);
     //    // file has been uploaded successfully
-    //    console.log("file uploaded on cloudinary",response.url)
+    // console.log("file uploaded on cloudinary",response.url)
      fs.unlinkSync(localFilePath)
        return response
     } catch(error){
@@ -31,13 +31,15 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const destroyOnCloudinary = async (remotePath) => {
   try {
+    console.log('remotePath:', remotePath);
       if (!remotePath) return null;
-      const regex = /[\w\.\$]+(?=.png|.jpg|.gif)/;
-      let matches;
+     
+      const regex = /\/([^\/]+)(?=\.\w+$)/;
+      const matches = regex.exec(remotePath);
 
-      if ((matches = regex.exec(remotePath)) !== null) {
+      if ( matches !== null) {
           // destroy the file on Cloudinary
-          await cloudinary.uploader.destroy(matches[0])
+          await cloudinary.uploader.destroy(matches[1])
           .then(result => console.log(result));
       }
 
@@ -46,7 +48,25 @@ const destroyOnCloudinary = async (remotePath) => {
   }
 }
 
-export {uploadOnCloudinary, destroyOnCloudinary}
+const deleteVideoOnCloudinary = async (url) => {
+    try {
+      //Getting public Id
+      const publicId = url.split("/").pop().split(".")[0];
+      console.log("This is public Id", publicId);
+      //Validating Public ID
+      if (!publicId) {
+        return console.log("No public Id present");
+      }
+      // Delete the file using the public ID
+      cloudinary.uploader
+        .destroy(publicId, { resource_type: "video" })
+        .then((result) => console.log(result));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+export {uploadOnCloudinary, destroyOnCloudinary,deleteVideoOnCloudinary }
 
 
 
