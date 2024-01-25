@@ -14,7 +14,7 @@ import mongooseAggregatePaginate from
             ref:"Video"
         },
         
-        owner: {
+        commentOwner: {
                 type:Schema.Types.ObjectId,
                 ref:"User"
         }
