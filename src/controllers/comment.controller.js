@@ -75,18 +75,21 @@ const updateComment = asyncHandler(async (req, res) => {
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
-    const commentId = req.params
-    const content = req.body
+    const {commentId} = req.params
+    const  userId = req.user._id
+    
     if (!commentId){
         throw new ApiError (401, 'invalid comment id or comment id not found')
     }
-    if(!content) {
-        throw new ApiError(401, "content must be required ")
-    }
+    
+    const comment = await Comment.findById(commentId);
 
-    const comment = await Comment.findById(videoId);
-    if (comment.commentOwner !== req.user) {
-        throw new ApiError(403, "You are not allowed");
+    if (!comment) {
+        throw new ApiError(404, "Comment not found");
+    }
+    
+    if (comment.commentOwner.toString() != req.user._id) {
+        throw new ApiError(403, "You do not have permission to update this comment!");
     }
     const deletedComment = await Comment.findByIdAndDelete(commentId);
 
