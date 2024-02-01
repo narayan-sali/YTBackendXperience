@@ -41,10 +41,62 @@ const addComment = asyncHandler(async (req, res) => {
 
 const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
+    const { content } = req.body
+    const {commentId} = req.params
+    const userId = req.user._id
+    
+    if(!commentId) {
+        throw new ApiError(400, "comment id not found or incorrect")
+    }
+    if(!content){
+        throw new ApiError (400, "content must be required")
+    }
+
+    const comment = await Comment.findById(commentId)
+    if(!comment){
+        throw new ApiError(400, "commentID not found")
+    }
+    const updatedComment = await Comment.findByIdAndUpdate(commentId,
+        {
+            $set:{
+              content : content
+              
+            }
+          },
+          {new: true})
+      
+    if(!updatedComment){
+        throw new ApiError(500, "Error while updating errors")
+    }
+    return res 
+    .status(200)
+    .json(new ApiResponse (200, updateComment , "comment added succesffuly"))
+
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
-    // TODO: delete a comment
+    const commentId = req.params
+    const content = req.body
+    if (!commentId){
+        throw new ApiError (401, 'invalid comment id or comment id not found')
+    }
+    if(!content) {
+        throw new ApiError(401, "content must be required ")
+    }
+
+    const comment = await Comment.findById(videoId);
+    if (comment.commentOwner !== req.user) {
+        throw new ApiError(403, "You are not allowed");
+    }
+    const deletedComment = await Comment.findByIdAndDelete(commentId);
+
+    if (!deletedComment) {
+        throw new ApiError(404, "Something went wrong while deleting comment!");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{},"Comment deleted successfully"))
 })
 
 export {

@@ -24,8 +24,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400 , "Title and description is required")
        }
 
-
-
      // checck for video and thumbnail
        const videoFileLocalPath = await req.files?.videoFile[0]?.path
        if(!videoFileLocalPath){
