@@ -16,19 +16,19 @@ const createPlaylist = asyncHandler(async (req, res) => {
        }
 
     console.log("userID:" , userId)
-    const  playList = await Playlist.create({
+    const  playlist = await Playlist.create({
         name: name,
         description:description,
         playListOwner: req.user?._id,
         videos: []
     })
-    if(!playList){
+    if(!playlist){
         throw new ApiError(400, "Error while creating Playlist")
     }
 
     return res
     .status(201)
-    .json(new ApiResponse(200, playList, "playList created succesffuly"))
+    .json(new ApiResponse(200, playlist, "playList created succesffuly"))
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
@@ -40,7 +40,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     const playlists = await Playlist.find({playlistOwner:userId}).populate('playlistOwner',  'fullName email avatar')
   
    // if playlists are empty we can send  || playLists.length === 0
-    if (!playLists ){
+    if (!playlists ){
         throw new ApiError(400, "No playlists found for the specified user" )
     }
     return res
@@ -67,7 +67,25 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
+    if(!playlistId){
+        throw new ApiError(400, "playListId not found")
+    }
+    if(!videoId){
+        throw new ApiError(400, "video id not found")
+    }
+    const playlist = await Playlist.findById(playlistId)
+    if(!playlist){
+        throw new ApiError(400, "playlsit not found ")
+    }
+    //videos is an array in  Playlist model
+    playlist.videos.push(videoId);
+    // Saving the updated playlist
+    const updatedPlaylist = await playlist.save();
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{updatedPlaylist}, "Video added to playlist successfully" ))
 })
+
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
