@@ -37,7 +37,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         throw new ApiError(400, "user id not found")
     }
    
-    const playLists = await Playlist.find({playListOwner:userId}).populate('playListOwner',  'fullName email avatar')
+    const playlists = await Playlist.find({playlistOwner:userId}).populate('playlistOwner',  'fullName email avatar')
   
    // if playlists are empty we can send  || playLists.length === 0
     if (!playLists ){
@@ -45,13 +45,25 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     }
     return res
     .status(200)
-    .json(new ApiResponse(200,{playLists}, "playList fetched succesfully" ))
+    .json(new ApiResponse(200,{playlists}, "playList fetched succesfully" ))
 })
 
 const getPlaylistById = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
-    //TODO: get playlist by id
+    
+    const userId = req.user._id
+    if(!playlistId){
+        throw new ApiError(400, "playlist id not found")
+    }
+    const getOwnerPlaylist = await Playlist.findById(playlistId)
+   if(!getOwnerPlaylist){
+      throw new ApiError(400, "playlist not found")
+    }
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{getOwnerPlaylist}, "playList fetched succesfully" ))
 })
+
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
