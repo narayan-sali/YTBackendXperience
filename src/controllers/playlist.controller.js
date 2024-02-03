@@ -6,14 +6,46 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 
 const createPlaylist = asyncHandler(async (req, res) => {
-    const {name, description} = req.body
+    // Check if any field is empty
+    const { name , description } = req.body
+    const userId = req.user._id
+    if (
+        [name && description].some((field)=>field?.trim()=== "")
+        ){
+        throw new ApiError(400 , "Name and Description is  must required")
+       }
 
-    //TODO: create playlist
+    console.log("userID:" , userId)
+    const  playList = await Playlist.create({
+        name: name,
+        description:description,
+        playListOwner: req.user?._id,
+        videos: []
+    })
+    if(!playList){
+        throw new ApiError(400, "Error while creating Playlist")
+    }
+
+    return res
+    .status(201)
+    .json(new ApiResponse(200, playList, "playList created succesffuly"))
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
     const {userId} = req.params
-    //TODO: get user playlists
+    if(!userId){
+        throw new ApiError(400, "user id not found")
+    }
+   
+    const playLists = await Playlist.find({playListOwner:userId}).populate('playListOwner',  'fullName email avatar')
+  
+   // if playlists are empty we can send  || playLists.length === 0
+    if (!playLists ){
+        throw new ApiError(400, "No playlists found for the specified user" )
+    }
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{playLists}, "playList fetched succesfully" ))
 })
 
 const getPlaylistById = asyncHandler(async (req, res) => {
