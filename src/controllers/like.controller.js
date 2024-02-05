@@ -51,7 +51,35 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
     const {commentId} = req.params
-    //TODO: toggle like on comment
+    if(!commentId){
+        throw new ApiError(400, "comment id not found")
+    }
+    const commentLike = await Like.findOne({
+        comment: commentId
+    })
+    
+    let like;
+    let unlike;
+    if(commentLike){
+        unlike = await Like.deleteOne({
+            comment:commentId
+        })
+        if(!unlike){
+            throw new ApiError(500, "something went wrong while unlike comment!!")
+        }
+    }else {
+        like = await Like.create({
+            comment:commentId,
+            likedBy:req.user._id
+        })
+        if(!like){
+            throw new ApiError(500, "something went wrong while like comment !!")
+        }
+    } 
+    return res
+    .status(200)
+    .json( new ApiResponse(200, {}, `User ${like? "like": "Unlike"} comment successfully !!`))
+    
 
 })
 
