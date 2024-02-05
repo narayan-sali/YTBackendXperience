@@ -19,7 +19,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
     const  playlist = await Playlist.create({
         name: name,
         description:description,
-        playListOwner: req.user?._id,
+        playlistOwner: req.user?._id,
         videos: []
     })
     if(!playlist){
@@ -125,7 +125,24 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 const updatePlaylist = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
     const {name, description} = req.body
-    //TODO: update playlist
+    const userId = req.user._id
+    if (
+        [name || description].some((field)=>field?.trim()=== "")
+        ){
+        throw new ApiError(400 , "Name or Description is  must required")
+       }
+    const playlist = await Playlist.findByIdAndUpdate(playlistId,{
+        name : name,
+        description: description,
+        playListOwner: req.user?._id,
+        videos: []
+    })
+    if(!playlist){
+        throw new ApiError(400, "playlist not found")
+    }
+    return res
+    .status(201)
+    .json(new ApiResponse(200, playlist, "playlist updated successfully"));
 })
 
 export {
