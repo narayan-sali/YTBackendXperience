@@ -85,9 +85,37 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
     const {tweetId} = req.params
-    //TODO: toggle like on tweet
-}
-)
+    if(!tweetId){
+        throw new ApiError(400, "tweet id not found")
+    }
+    const tweetLike = await Like.findOne({
+        tweet: tweetId
+    })
+
+    let like;
+    let unlike;
+    if(tweetLike){
+        unlike = await Like.deleteOne({
+            tweet: tweetId
+        })
+        if(!unlike){
+            throw new ApiError(500, "something went wrong while unlike tweet!!")
+        }
+    }else{
+        like = await Like.create({
+            tweet:tweetId,
+            likedBy:req.user._id
+        })
+        if(!like){
+            throw new ApiError(500, "something went wrong while like tweet!!")
+        }
+    }
+    return res
+    .status(200)
+    .json( new ApiResponse(200, {}, `User ${like? "like": "Unlike"} tweet successfully !!`))
+    
+    
+})
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
