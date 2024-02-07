@@ -67,7 +67,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
     const userId = req.user._id
-    console.log(userId)
+    
 
     if(!playlistId){
         throw new ApiError(400, "playListId not found")
@@ -89,6 +89,11 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     if (playlist.PlaylistOwner.toString() !== req.user._id.toString()){
             throw new ApiError(403, "You don't have permission to add video in this playlist!");
         }
+
+
+    if(playlist.videos.includes(videoId)){
+            throw new ApiError(400, "video already exists in this playlist!!");
+        }
     
     //videos is an array in  Playlist model
     playlist.videos.push(videoId);
@@ -96,7 +101,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const updatedPlaylist = await playlist.save();
     return res
     .status(200)
-    .json(new ApiResponse(200,{updatedPlaylist}, "Video added to playlist successfully" ))
+    .json(new ApiResponse(200,{videoId}, "Video added to playlist successfully" ))
 })
 
 
@@ -108,17 +113,30 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     if(!videoId){
         throw new ApiError(400, "video id not found")
     }
+    const video = await Video.findById( videoId )
+    
+    if (video?.owner != req.user.id) {
+        throw new ApiError(404, "you are not authorised user to remove video from playlist");
+    }
+
     const playlist = await Playlist.findById(playlistId)
     if(!playlist){
         throw new ApiError(400, "playlsit not found ")
     }
+    if (playlist.PlaylistOwner.toString() !== req.user._id.toString()){
+        throw new ApiError(403, "You don't have permission to remove video in this playlist!");
+    }
+    if(!playlist.video.includes(videoId)){
+        throw new ApiError(400, "video not exists in this playlist!!");
+    }
+    
     //videos is an array in  Playlist model
     playlist.videos.pull(videoId);
     // Saving the updated playlist
     const updatedPlaylist = await playlist.save();
     return res
     .status(200)
-    .json(new ApiResponse(200,{updatedPlaylist}, "Video removed from playlist successfully" ))
+    .json(new ApiResponse(200,{videoId}, "Video removed from playlist successfully" ))
 })
 
 const deletePlaylist = asyncHandler(async (req, res) => {
