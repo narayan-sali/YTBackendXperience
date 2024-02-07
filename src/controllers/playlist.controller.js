@@ -3,8 +3,7 @@ import {Playlist} from "../models/playlist.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-
-
+import { Video } from "../models/video.model.js"
 const createPlaylist = asyncHandler(async (req, res) => {
     // Check if any field is empty
     const { name , description } = req.body
@@ -19,7 +18,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
     const  playlist = await Playlist.create({
         name: name,
         description:description,
-        playlistOwner: req.user?._id,
+        PlaylistOwner: req.user?._id,
         videos: []
     })
     if(!playlist){
@@ -67,16 +66,30 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
+    const userId = req.user._id
+    console.log(userId)
+
     if(!playlistId){
         throw new ApiError(400, "playListId not found")
     }
     if(!videoId){
         throw new ApiError(400, "video id not found")
     }
+    const video = await Video.findById( videoId )
+    
+    if (video?.owner != req.user.id) {
+        throw new ApiError(404, "you are not authorised user to add video to playlist");
+    }
+
     const playlist = await Playlist.findById(playlistId)
     if(!playlist){
         throw new ApiError(400, "playlsit not found ")
     }
+    
+    if (playlist.PlaylistOwner.toString() !== req.user._id.toString()){
+            throw new ApiError(403, "You don't have permission to add video in this playlist!");
+        }
+    
     //videos is an array in  Playlist model
     playlist.videos.push(videoId);
     // Saving the updated playlist
