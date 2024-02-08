@@ -3,30 +3,36 @@ import {Like} from "../models/like.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
+import { User }  from "../models/user.model.js"
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const {videoId} = req.params
-   
+    const userId = req.user._id
+   console.log("videoId:", videoId)
     if(!(videoId)){
         throw new ApiError(400, "This video id is not valid")
     }
 
     const videoLike = await Like.findOne({
-        video: videoId
-    });
+        video: videoId,
+        likedBy: userId
 
+    });
+    console.log("videolike:", videoLike )
     let like;
     let unlike;
 
     if(videoLike){
         unlike = await Like.deleteOne({
-            video: videoId
+            video: videoId,
+            likedBy: req.user._id
+
         })
 
         if(!unlike){
             throw new ApiError(
                 500,
-                "something went wrong while unlike video !!"
+                "something went wrong while like video !!"
             )
         }
     }else{
@@ -38,7 +44,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
         if(!like){
             throw new ApiError(
                 500,
-                "something went wrong while like video !!"
+                "something went wrong while unlike video !!"
             )
         }
     }
@@ -51,18 +57,22 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
     const {commentId} = req.params
+    const userId = req.user._id
     if(!commentId){
         throw new ApiError(400, "comment id not found")
     }
     const commentLike = await Like.findOne({
-        comment: commentId
+        comment: commentId,
+        likedBy: req.user._id
+
     })
     
     let like;
     let unlike;
     if(commentLike){
         unlike = await Like.deleteOne({
-            comment:commentId
+            comment:commentId,
+            likedBy:req.user._id
         })
         if(!unlike){
             throw new ApiError(500, "something went wrong while unlike comment!!")
@@ -89,14 +99,17 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
         throw new ApiError(400, "tweet id not found")
     }
     const tweetLike = await Like.findOne({
-        tweet: tweetId
+        tweet: tweetId,
+        likedBy:req.user._id
+
     })
 
     let like;
     let unlike;
     if(tweetLike){
         unlike = await Like.deleteOne({
-            tweet: tweetId
+            tweet: tweetId,
+            likedBy:req.user._id
         })
         if(!unlike){
             throw new ApiError(500, "something went wrong while unlike tweet!!")
