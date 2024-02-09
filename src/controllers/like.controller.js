@@ -131,7 +131,52 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 })
 
 const getLikedVideos = asyncHandler(async (req, res) => {
-    
+    const userId = req.user._id
+
+    if(!(userId)){
+        throw new ApiError(400, "This user id is not valid")
+    }
+
+    // find user in database 
+    const user = await User.findById(userId)
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const likedVideos = await Like.aggregate([
+        {
+          $match: {
+            likedBy: new mongoose.Types.ObjectId(userId),
+            video: { $exists: true },
+          },
+        },
+        {
+          $lookup: {
+            from: "videos",
+            localField: "video",
+            foreignField: "_id",
+            as: "AllVideos",
+          },
+        },
+        {
+          $unwind: {
+            path: "$AllVideos",
+          },
+        },
+        {
+          $project: {
+            _id: "$AllVideos._id",
+            owner : "$AllVideos.owner",
+            title: "$AllVideos.title",
+            videoFile: "$AllVideos.videoFile",
+            createdAt: "$AllVideos.createdAt",
+          },
+        },
+      ]) 
+
+    return res
+    .status(200)
+    .json( new ApiResponse(200,likedVideos," fetched Liked videos successfully !!"))
 })
 
 export {
