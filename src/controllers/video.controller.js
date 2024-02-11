@@ -65,7 +65,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         if (req.files && Array.isArray(req.files.thumbnail) && req.files.thumbnail.length>0) {
             thumbnailLocalPath = req.files.thumbnail[0].path
         }
-        // console.log(thumbnailLocalPath)
+      
 // upload on cloudinary
    const videoFile = await uploadOnCloudinary(videoFileLocalPath)
         if(!videoFile){
@@ -75,7 +75,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         if(!thumbnail){
             throw new ApiError(400, "Thumnail is missing")
         }
-        // console.log("thumbanil:", thumbnail)
+       
     const  newVideo = await Video.create({
         title, 
         description, 
@@ -92,7 +92,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
 
 
-// return response
+
 return  res.status(201).json(
     new ApiResponse (200, publishNewVideo , "Video Uploaded Successfully ")
   )
