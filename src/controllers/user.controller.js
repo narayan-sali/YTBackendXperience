@@ -176,18 +176,23 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
     if(!incomingRefreshtoken) {
       throw new ApiError(401, "unauthorised request")
     }
-
+    
     try {
+      
       const decodedToken = jwt.verify(incomingRefreshtoken,process.env.REFRESH_TOKEN_SECRET)
   
-      const user = User.findById(decodedToken?._id)
+      const user = await User.findById(decodedToken?._id, 'refreshToken');
+      
+
       if(!user){
         throw new ApiError(401,"Invlaid Token")
       }
       
+
       if(incomingRefreshtoken !== user?.refreshToken){
         throw new ApiError(401 , "Refresh token is expired or used" )
       }
+      
   
       const options = {
         httpOnly:true,
@@ -207,7 +212,7 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
         )
       )
     } catch (error) { 
-       throw new ApiError ("401", error?.messsage || "Invalid referesh token")
+       throw new ApiError ("401", error?.messsage || "Invalid refresh token")
     }
 })
 
@@ -263,14 +268,6 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
     throw new ApiError (400, "Avatar is Missing")
   }
 
-  // const avatar = await uploadOnCloudinary(avatarLocalPath)
-  // if (!avatar.url){
-  //   throw new ApiError (400, "Error while uploading on avatar ")
-
-  // }
-  
-    // TODO :     Delete the old avatar from Cloudinary 
-
      await destroyOnCloudinary(req.user.avatar)
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
@@ -293,7 +290,7 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
 
 })
 const updateUserCoverImage = asyncHandler(async(req,res)=>{
-  const {coverImageLocalPath}= req.file?.path
+  const coverImageLocalPath = req.file?.path
   if(!coverImageLocalPath){
     throw new ApiError (400, "Cover Image file is Missing")
   }
@@ -307,6 +304,14 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
       
   }
 
+
+  
+  // const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+  // if (!coverImage.url){
+  //   throw new ApiError (400, "Error while uploading on Cover Image ")
+  // }
+ 
+ 
   
   // const coverImage = await uploadOnCloudinary(coverImageLocalPath)
   // if (!coverImage.url){
@@ -319,7 +324,7 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
         coverImage: coverImage.url
       }
     },
-    {new: error}).select("-password -refreshToken")
+    {new: true}).select("-password -refreshToken")
 
     return res
     .status(200)
