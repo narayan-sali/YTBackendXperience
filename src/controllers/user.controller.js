@@ -401,7 +401,7 @@ const getUserChannelProfile  = asyncHandler(async(req,res)=>{
    return res
    .status(200)
    .json(
-    new ApiResponse (200, channel[0], "user channel fetched succesffuly")
+    new ApiResponse (200, channel[0], "user channel fetched succesfully")
    )
 
 })
@@ -417,7 +417,7 @@ const getwatchHistory = asyncHandler(async(req,res)=>{
         {
           $lookup:{
             from: "videos",
-            localField: "$watchHistory",
+            localField: "watchHistory",
             foreignField: "_id",
             as: "watchHistory",
             pipeline: [
@@ -441,7 +441,7 @@ const getwatchHistory = asyncHandler(async(req,res)=>{
               {
                 $addFields:{
                   owner:{
-                    $first: "$owner"
+                    $arrayElemAt: ["$owners", 0]
                   }
                 }
               }
@@ -451,13 +451,7 @@ const getwatchHistory = asyncHandler(async(req,res)=>{
       ])
       return res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          user[0].watchHistory,
-          "Watch History fetched succesffuly"
-        )
-      )
+      .json(new ApiResponse(200,user[0].watchHistory,"Watch History fetched succesffuly"))
 })
 export { 
     registerUser,
